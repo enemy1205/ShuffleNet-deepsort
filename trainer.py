@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 import global_settings as settings
 from torch.optim.lr_scheduler import _LRScheduler
-from deep.mobilenet import MobileNetv2
+# from deep.mobilenet import MobileNetv2
 from deep.model import Net
 from deep.ghost_net import ghost_net
 from deep.ShuffleNetV2 import shufflenet_v2_x0_5
@@ -41,8 +41,6 @@ def train(epoch):       # 开启训练
     correct = 0.0
 
     for batch_index,(images,labels) in enumerate(train_set):
-        if epoch <= args.warm:           # 第一回合使用warmup学习率策略
-            warmup_scheduler.step()
         images = images.to(device)
         labels = labels.to(device)
 
@@ -56,6 +54,8 @@ def train(epoch):       # 开启训练
         loss = loss_function(outputs,labels)  # 损失
         loss.backward()
         optimizer.step()
+        if epoch <= args.warm:           # 第一回合使用warmup学习率策略
+            warmup_scheduler.step()
         loss_sum += loss.item()
 
         n_iter = (epoch - 1) * len(train_set) + batch_index + 1
@@ -159,7 +159,7 @@ if __name__=="__main__":
     parser.add_argument('-net', type=str, default="shufflenet", help='net type')
     # parser.add_argument('-net', type=str, default="ghost_net_320_8_new", help='net type')
     parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
-    parser.add_argument('-w', type=int, default=2, help='number of workers for dataloader')
+    parser.add_argument('-w', type=int, default=8, help='number of workers for dataloader')
     parser.add_argument('-b', type=int, default=32, help='batch size for dataloader')
     parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
     parser.add_argument('-warm', type=int, default=3, help='warm up training phase')
@@ -177,8 +177,8 @@ if __name__=="__main__":
 
     # load_model(model_path,net,0)
 
-    train_path = r"F:\BaiduNetdiskDownload\Market-1501-v15.09.15\pytorch\train_all"            # 数据集存放信息
-    test_path = r"F:\BaiduNetdiskDownload\Market-1501-v15.09.15\pytorch\val"
+    train_path = r"/home/lxc/lxc/dataset/Market-1501-v15.09.15/pytorch/train_all"            # 数据集存放信息
+    test_path = r"/home/lxc/lxc/dataset/Market-1501-v15.09.15/pytorch/val"
 
     train_set = Datasets(train_path,True)    # 加载数据集
     test_set = Datasets(test_path)
@@ -221,15 +221,13 @@ if __name__=="__main__":
 
     best_acc = 0.0
     for epoch in range(1, settings.EPOCH):
-        if epoch > args.warm:
-            train_scheduler.step(epoch)
-
         train_loss,train_acc = train(epoch)     # 返回训练集平均损失
         test_loss,acc = eval_training(epoch)    # 返回测试集损失和精度
+        if epoch > args.warm:
+            train_scheduler.step(epoch)
         print("test_set in epoch:{} acc is :{}".format(epoch,acc))
         print()
         val_acc = 0        # 返回验证集损失
-
         # start to save best performance model after learning rate decay to 0.01
         if best_acc <= acc:        # 按照测试集精度保存
 

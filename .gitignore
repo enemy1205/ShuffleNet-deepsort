@@ -1,0 +1,27 @@
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Models
+*.pth
+*.engine
+*.pt
+*.ptm
+*.caffemodel
+*.mat
+
+# others
+.idea/
+.qt_for_python/
+frames/
+runs/
+checkpoint/
+debug/
+data/
+.vscode/
+__pycache__/
+*.tar
+
+

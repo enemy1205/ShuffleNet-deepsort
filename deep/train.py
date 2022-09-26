@@ -9,7 +9,7 @@ import torch.backends.cudnn as cudnn
 import torchvision
 
 # from model import Net
-from mobilenet import MobileNetv2
+# from mobilenet import MobileNetv2
 from ghost_net import ghost_net
 from ShuffleNetV2 import shufflenet_v2_x0_5
 
